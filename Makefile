@@ -2,7 +2,7 @@ BUILDDIR = build
 SRCDIR = src
 INCLUDEDIR = include
 
-CFLAGS = -Wall -std=c++17
+CFLAGS = -Wall -std=c++17 -O3
 
 all: clean $(BUILDDIR)/game
 
