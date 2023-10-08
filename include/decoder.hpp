@@ -1,7 +1,9 @@
-#pragma once
+#ifndef DECODER
+#define DECODER
+
 #include <cstdint>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace decoder {
 class Data {
@@ -22,3 +24,5 @@ class Data {
 
 std::vector<std::vector<std::int32_t>> decode(std::string file_path);
 }  // namespace decoder
+
+#endif /* DECODER */

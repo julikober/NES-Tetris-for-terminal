@@ -1,3 +1,5 @@
+#include "game.hpp"
+
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -7,8 +9,6 @@
 #include <numeric>
 #include <thread>
 #include <vector>
-
-#include "decoder.hpp"
 
 using namespace std::chrono;
 
@@ -63,16 +63,58 @@ class Printer {
   }
 };
 
-int main(void) {
-  std::vector<std::vector<std::int32_t>> background =
-      decoder::decode("assets/background.bin");
+void Game::_loadBackground(std::string file_path) {
+  std::vector<std::vector<std::int32_t>> background_data =
+      decoder::decode(file_path);
 
-  std::vector<std::vector<std::int32_t>> background2 =
-      decoder::decode("assets/background2.bin");
+  for (int i = 0; i < background_data.size(); i++) {
+    for (int j = 0; j < background_data[i].size(); j++) {
+      _pixels[i][j] = background_data[i][j];
+    }
+  }
+}
 
-  std::vector<std::vector<std::int32_t>> frame = background;
+void Game::print() {
+  // std::vector<std::vector<std::int32_t>> color_palette =
+  //     decoder::decode("assets/level_colors.bin");
+  // const int level = 1;
+  // std::map<BlockType, std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>>
+  //     level_colors;
+  // int current_level = 0;
+  // for (int i = 0; i < color_palette.size(); i += BLOCK_SIZE) {
+  //   for (int j = 0; j < color_palette[i].size(); j += BLOCK_SIZE * 3) {
+  //     if (current_level == level) {
+  //       for (int type = 0; type < 3; type++) {
+  //         for (int i2 = 0; i2 < BLOCK_SIZE; i2++) {
+  //           for (int j2 = 0; j2 < BLOCK_SIZE; j2++) {
+  //             level_colors[static_cast<BlockType>(type)][i2][j2] =
+  //                 color_palette[i + i2][j + j2 + type * BLOCK_SIZE];
+  //           }
+  //         }
+  //       }
+  //       break;
+  //     }
+  //     current_level++;
+  //   }
+  //   if (current_level == level) {
+  //     break;
+  //   }
+  // }
+  // Block block = Block(type2, {0, 0});
+  // auto level_color = block.getPixels(level_colors);
 
-  std::vector<std::vector<std::int32_t>> prev_frame;
+  // insert level_color to frame
+  // for (int i = 0; i < level_color.size(); i++) {
+  //   std::vector<std::int32_t> row;
+  //   for (int j = 0; j < level_color[i].size(); j++) {
+  //     row.push_back(level_color[i][j]);
+  //     row.push_back(level_color[i][j]);
+  //   }
+  //   frame.push_back(row);
+  //   frame.push_back(row);
+  // }
+
+  std::array<std::array<std::int32_t, SCREEN_WIDTH>, SCREEN_HEIGHT> prev_frame;
 
   Printer printer;
   struct winsize winsize;
@@ -85,78 +127,84 @@ int main(void) {
 
   std::cout << "\033[?25l";
 
-  for (int k = 0; k < 1000; k++) {
-    frame = k % 2 == 0 ? background : background2;
-    ioctl(0, TIOCGWINSZ, &winsize);
+  // for (int k = 0; k < 1000; k++) {
+  //   frame = k % 2 == 0 ? background : background2;
+  ioctl(0, TIOCGWINSZ, &winsize);
 
-    if (winsize.ws_col != prev_winsize.ws_col ||
-        winsize.ws_row != prev_winsize.ws_row) {
-      // clear frame
-      std::cout << "\033[H\033[0m";
+  if (winsize.ws_col != prev_winsize.ws_col ||
+      winsize.ws_row != prev_winsize.ws_row) {
+    // clear frame
+    std::cout << "\033[H\033[0m";
 
-      row = winsize.ws_row;
-      col = winsize.ws_col;
+    row = winsize.ws_row;
+    col = winsize.ws_col;
 
-      // print empty frame
-      for (int i = 0; i < winsize.ws_row; i++) {
-        for (int j = 0; j < winsize.ws_col; j++) {
-          std::cout << " ";
-        }
-      }
-
-      prev_frame = std::vector<std::vector<std::int32_t>>(
-          frame.size(), std::vector<std::int32_t>(frame[0].size(), -1));
-      prev_winsize = winsize;
-    }
-
-    if (times.size() > 0) {
-      auto time_now = high_resolution_clock::now();
-      std::this_thread::sleep_for(milliseconds(1000 / 60) -
-                                  milliseconds(times.back()));
-    }
-
-    auto start = high_resolution_clock::now();
-    for (int i = 0; i < frame.size(); i += 2) {
-      for (int j = 0; j < frame[i].size(); j++) {
-        std::int32_t color1 = frame[i][j];
-        std::int32_t color2 = frame[i + 1][j];
-
-        if (j >= winsize.ws_col - 1) {
-          break;
-        }
-        if (color1 == prev_frame[i][j] && color2 == prev_frame[i + 1][j]) {
-          continue;
-        }
-
-        prev_frame[i][j] = color1;
-        prev_frame[i + 1][j] = color2;
-
-        if (row > i / 2) {
-          std::cout << "\033[" << (row - i / 2) << "A";
-        }
-
-        if (row < i / 2) {
-          std::cout << "\033[" << (i / 2 - row) << "B";
-        }
-
-        if (col < j) {
-          std::cout << "\033[" << (j - col) << "C";
-        }
-
-        if (col > j) {
-          std::cout << "\033[" << (col - j) << "D";
-        }
-
-        printer.print(color1, color2);
-
-        col = j + 1;
-        row = i / 2;
+    // print empty frame
+    for (int i = 0; i < winsize.ws_row; i++) {
+      for (int j = 0; j < winsize.ws_col; j++) {
+        std::cout << " ";
       }
     }
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<milliseconds>(stop - start);
-    times.push_back(duration.count());
+
+    // prev_frame = std::vector<std::vector<std::int32_t>>(
+    //     _pixels.size(), std::vector<std::int32_t>(_pixels[0].size(), -1));
+    // clear prev_frame
+    for (int i = 0; i < winsize.ws_row; i++) {
+      for (int j = 0; j < winsize.ws_col; j++) {
+        prev_frame[i][j] = -1;
+      }
+    }
+    prev_winsize = winsize;
   }
+
+  if (times.size() > 0) {
+    auto time_now = high_resolution_clock::now();
+    std::this_thread::sleep_for(milliseconds(1000 / 60) -
+                                milliseconds(times.back()));
+  }
+
+  auto start = high_resolution_clock::now();
+  for (int i = 0; i < _pixels.size(); i += 2) {
+    for (int j = 0; j < _pixels[i].size(); j++) {
+      std::int32_t color1 = _pixels[i][j];
+      std::int32_t color2 = _pixels[i + 1][j];
+
+      if (j >= winsize.ws_col - 1) {
+        break;
+      }
+      if (color1 == prev_frame[i][j] && color2 == prev_frame[i + 1][j]) {
+        continue;
+      }
+
+      prev_frame[i][j] = color1;
+      prev_frame[i + 1][j] = color2;
+
+      if (row > i / 2) {
+        std::cout << "\033[" << (row - i / 2) << "A";
+      }
+
+      if (row < i / 2) {
+        std::cout << "\033[" << (i / 2 - row) << "B";
+      }
+
+      if (col < j) {
+        std::cout << "\033[" << (j - col) << "C";
+      }
+
+      if (col > j) {
+        std::cout << "\033[" << (col - j) << "D";
+      }
+
+      printer.print(color1, color2);
+
+      col = j + 1;
+      row = i / 2;
+    }
+  }
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<milliseconds>(stop - start);
+  times.push_back(duration.count());
+  // }
   std::cout << "\033[0m" << std::endl;
   std::cout << "\033[?25h";
   std::cout << "Average: "
@@ -166,5 +214,4 @@ int main(void) {
             << std::endl;
   std::cout << "Max: " << *std::max_element(times.begin(), times.end()) << "ms"
             << std::endl;
-  return 0;
 }
