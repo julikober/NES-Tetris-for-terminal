@@ -8,14 +8,20 @@
 
 #define BLOCK_SIZE 8
 
-enum BlockType { type1, type2, type3 };
+enum BlockType
+{
+  type1,
+  type2,
+  type3
+};
 
-class Block {
- private:
+class Block
+{
+private:
   std::array<int, 2> _position;
   BlockType _type;
 
- public:
+public:
   Block(BlockType type, std::array<int, 2> position)
       : _type(type), _position(position){};
 
@@ -25,8 +31,14 @@ class Block {
   inline std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE> getPixels(
       std::map<BlockType,
                std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>>
-          types) {
+          types)
+  {
     return types[_type];
+  }
+
+  inline void setPosition(std::array<int, 2> position)
+  {
+    _position = position;
   }
 };
 

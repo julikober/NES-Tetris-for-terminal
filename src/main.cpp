@@ -14,6 +14,7 @@ using namespace std::chrono;
 
 int main(void) {
   Game game = Game();
+  game.drawField();
   game.print();
 
   return 0;
