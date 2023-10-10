@@ -129,12 +129,33 @@ void Game::_loadBackground(std::string file_path)
   }
 }
 
-void Game::drawField()
+void Game::clearField()
+{
+  // Clear field on screen
+  for (int i = 0; i < FIELD_BLOCK_HEIGHT * BLOCK_SIZE; i++)
+  {
+    for (int j = 0; j < FIELD_BLOCK_WIDTH * BLOCK_SIZE; j++)
+    {
+      _screen_pixels[i + FIELD_PIXEL_OFFSET_Y][j + FIELD_PIXEL_OFFSET_X] = -1;
+    }
+  }
+}
+
+void Game::init()
+{
+  _loadBackground(_background_file_path);
+  _color_palette = decoder::decode(_level_colors_file_path);
+  _current_shape = std::make_unique<JShape>(std::array<int, 2>{0, 0});
+  _next_shape = std::make_unique<JShape>(
+      std::array<int, 2>{0, 0});
+}
+
+void Game::_insertBlocks(std::vector<Block> blocks)
 {
   std::map<BlockType, std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>>
       level_colors = _getLevelColors();
 
-  for (Block block : _blocks)
+  for (Block &block : blocks)
   {
     auto pixels = block.getPixels(level_colors);
     for (int i = 0; i < BLOCK_SIZE; i++)
@@ -153,45 +174,6 @@ void Game::drawField()
 
 void Game::print()
 {
-  // std::vector<std::vector<std::int32_t>> color_palette =
-  //     decoder::decode("assets/level_colors.bin");
-  // const int level = 1;
-  // std::map<BlockType, std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>>
-  //     level_colors;
-  // int current_level = 0;
-  // for (int i = 0; i < color_palette.size(); i += BLOCK_SIZE) {
-  //   for (int j = 0; j < color_palette[i].size(); j += BLOCK_SIZE * 3) {
-  //     if (current_level == level) {
-  //       for (int type = 0; type < 3; type++) {
-  //         for (int i2 = 0; i2 < BLOCK_SIZE; i2++) {
-  //           for (int j2 = 0; j2 < BLOCK_SIZE; j2++) {
-  //             level_colors[static_cast<BlockType>(type)][i2][j2] =
-  //                 color_palette[i + i2][j + j2 + type * BLOCK_SIZE];
-  //           }
-  //         }
-  //       }
-  //       break;
-  //     }
-  //     current_level++;
-  //   }
-  //   if (current_level == level) {
-  //     break;
-  //   }
-  // }
-  // Block block = Block(type2, {0, 0});
-  // auto level_color = block.getPixels(level_colors);
-
-  // insert level_color to frame
-  // for (int i = 0; i < level_color.size(); i++) {
-  //   std::vector<std::int32_t> row;
-  //   for (int j = 0; j < level_color[i].size(); j++) {
-  //     row.push_back(level_color[i][j]);
-  //     row.push_back(level_color[i][j]);
-  //   }
-  //   frame.push_back(row);
-  //   frame.push_back(row);
-  // }
-
   std::array<std::array<std::int32_t, SCREEN_WIDTH>, SCREEN_HEIGHT> prev_frame;
 
   Printer printer;
@@ -226,9 +208,7 @@ void Game::print()
         std::cout << " ";
       }
     }
-
-    // prev_frame = std::vector<std::vector<std::int32_t>>(
-    //     _pixels.size(), std::vector<std::int32_t>(_pixels[0].size(), -1));
+    
     // clear prev_frame
     for (int i = 0; i < winsize.ws_row; i++)
     {
@@ -239,15 +219,6 @@ void Game::print()
     }
     prev_winsize = winsize;
   }
-
-  if (times.size() > 0)
-  {
-    auto time_now = high_resolution_clock::now();
-    std::this_thread::sleep_for(milliseconds(1000 / 60) -
-                                milliseconds(times.back()));
-  }
-
-  auto start = high_resolution_clock::now();
   for (int i = 0; i < _screen_pixels.size(); i += 2)
   {
     for (int j = 0; j < _screen_pixels[i].size(); j++)
@@ -293,9 +264,6 @@ void Game::print()
       row = i / 2;
     }
   }
-  auto stop = high_resolution_clock::now();
-  auto duration = duration_cast<milliseconds>(stop - start);
-  times.push_back(duration.count());
   // }
   std::cout << "\033[0m" << std::endl;
   std::cout << "\033[?25h";
@@ -306,4 +274,62 @@ void Game::print()
             << std::endl;
   std::cout << "Max: " << *std::max_element(times.begin(), times.end()) << "ms"
             << std::endl;
+}
+
+bool Game::_isColliding(std::unique_ptr<Shape> &shape)
+{
+  for (auto &block : shape->getBlocks())
+  {
+    if (block.getPosition()[0] < 0 || block.getPosition()[0] >= FIELD_BLOCK_WIDTH ||
+        block.getPosition()[1] >= FIELD_BLOCK_HEIGHT)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+void Game::moveDown()
+{
+  _current_shape->moveDown();
+  if (_isColliding(_current_shape))
+  {
+    _current_shape->moveUp();
+  }
+}
+
+void Game::moveLeft()
+{
+  _current_shape->moveLeft();
+  if (_isColliding(_current_shape))
+  {
+    _current_shape->moveRight();
+  }
+}
+
+void Game::moveRight()
+{
+  _current_shape->moveRight();
+  if (_isColliding(_current_shape))
+  {
+    _current_shape->moveLeft();
+  }
+}
+
+void Game::rotate()
+{
+  _current_shape->rotate();
+  if (_isColliding(_current_shape))
+  {
+    _current_shape->rotateBack();
+  }
+}
+
+void Game::rotateBack()
+{
+  _current_shape->rotateBack();
+  if (_isColliding(_current_shape))
+  {
+    _current_shape->rotate();
+  }
 }

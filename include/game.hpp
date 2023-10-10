@@ -36,18 +36,24 @@ private:
 
   void _loadBackground(std::string file_path);
   std::map<BlockType, std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>> _getLevelColors();
+  void _insertBlocks(std::vector<Block> blocks);
+  bool _isColliding(std::unique_ptr<Shape> &shape);
 
 public:
-  Game(std::uint8_t level = 0) : _level(level)
-  {
-    Shape *shape = new JShape({0, 0});
-    _loadBackground(_background_file_path);
-    _color_palette =
-        decoder::decode(_level_colors_file_path);
-    _blocks = shape->getBlocks();
-  };
-  void drawField();
+  Game(std::uint8_t level = 0) : _level(level){};
+  void init();
   void print();
+
+  void clearField();
+  inline void drawShape() { _insertBlocks(_current_shape->getBlocks()); };
+  inline void drawField() { _insertBlocks(_blocks); };
+
+  void moveDown();
+  void moveLeft();
+  void moveRight();
+
+  void rotate();
+  void rotateBack();
 };
 
 #endif /* GAME */

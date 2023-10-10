@@ -47,6 +47,11 @@ public:
   void rotate();
   void rotateBack();
 
+  inline void moveDown() { _position[1]++; }
+  inline void moveUp() { _position[1]--; }
+  inline void moveLeft() { _position[0]--; }
+  inline void moveRight() { _position[0]++; }
+
   virtual ~Shape() = 0;
 };
 
