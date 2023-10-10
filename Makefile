@@ -18,11 +18,14 @@ $(BUILDDIR)/decoder.a: $(BUILDDIR)/data.o $(BUILDDIR)/decoder.o
 $(BUILDDIR)/shape.o: $(SRCDIR)/shapes/shape.cpp
 	g++ $(CFLAGS) -c $(SRCDIR)/shapes/shape.cpp -o $(BUILDDIR)/shape.o -I $(INCLUDEDIR)/shapes
 
+$(BUILDDIR)/printer.o: $(SRCDIR)/printer.cpp
+	g++ $(CFLAGS) -c $(SRCDIR)/printer.cpp -o $(BUILDDIR)/printer.o
+
 $(BUILDDIR)/game.o: $(SRCDIR)/game.cpp
 	g++ $(CFLAGS) -c $(SRCDIR)/game.cpp -o $(BUILDDIR)/game.o
 
-$(BUILDDIR)/main: $(BUILDDIR)/game.o $(BUILDDIR)/decoder.a $(BUILDDIR)/shape.o
-	g++ $(CFLAGS) $(SRCDIR)/main.cpp $(BUILDDIR)/game.o $(BUILDDIR)/decoder.a $(BUILDDIR)/shape.o -o $(BUILDDIR)/main
+$(BUILDDIR)/main: $(BUILDDIR)/game.o $(BUILDDIR)/decoder.a $(BUILDDIR)/shape.o $(BUILDDIR)/printer.o $(SRCDIR)/main.cpp
+	g++ $(CFLAGS) $(SRCDIR)/main.cpp $(BUILDDIR)/game.o $(BUILDDIR)/decoder.a $(BUILDDIR)/shape.o $(BUILDDIR)/printer.o -o $(BUILDDIR)/main
 
 run: all
 	$(BUILDDIR)/main

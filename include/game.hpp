@@ -10,9 +10,7 @@
 #include "block.hpp"
 #include "decoder.hpp"
 #include "shapes.hpp"
-
-#define SCREEN_WIDTH 256
-#define SCREEN_HEIGHT 224
+#include "printer.hpp"
 
 #define FIELD_BLOCK_WIDTH 10
 #define FIELD_BLOCK_HEIGHT 20
@@ -44,9 +42,8 @@ public:
   void init();
   void print();
 
-  void clearField();
-  inline void drawShape() { _insertBlocks(_current_shape->getBlocks()); };
-  inline void drawField() { _insertBlocks(_blocks); };
+  void drawField();
+  void drawShape();
 
   void moveDown();
   void moveLeft();
