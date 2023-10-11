@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 #define SCREEN_WIDTH 256
 #define SCREEN_HEIGHT 224
@@ -20,6 +21,8 @@ class Printer {
   int32_t _color1;
   int32_t _color2;
   struct winsize _prev_winsize;
+
+  std::stringstream _output;
 
   void _print_color(int32_t color1, int32_t color2);
 

@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <sstream>
 
 #include "block.hpp"
 #include "decoder.hpp"
@@ -37,7 +38,7 @@ private:
   std::map<BlockType, std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>> _getLevelColors();
   void _insertBlocks(std::vector<Block> blocks);
   bool _isColliding(std::unique_ptr<Shape> &shape);
-  void _generateShape();
+  std::unique_ptr<Shape> _generateShape();
 
 public:
   Game(std::uint8_t level = 0) : _level(level){};
