@@ -131,6 +131,47 @@ bool Game::_isColliding(std::unique_ptr<Shape> &shape) {
   return false;
 }
 
+std::vector<int> Game::getFullLines() {
+  std::vector<int> full_lines;
+  for (int i = 0; i < FIELD_BLOCK_HEIGHT; i++) {
+    bool is_full = true;
+    for (int j = 0; j < FIELD_BLOCK_WIDTH; j++) {
+      bool is_block = false;
+      for (auto &block : _blocks) {
+        if (block.getPosition()[0] == j && block.getPosition()[1] == i) {
+          is_block = true;
+          break;
+        }
+      }
+      if (!is_block) {
+        is_full = false;
+        break;
+      }
+    }
+    if (is_full) {
+      full_lines.push_back(i);
+    }
+  }
+  return full_lines;
+}
+
+void Game::removeBlockAt(int x, int y) {
+  _blocks.erase(std::remove_if(_blocks.begin(), _blocks.end(),
+                               [x, y](Block &block) {
+                                 return block.getPosition()[0] == x &&
+                                        block.getPosition()[1] == y;
+                               }),
+                _blocks.end());
+}
+
+void Game::moveBlocksDown(int y) {
+  for (auto &block : _blocks) {
+    if (block.getPosition()[1] < y) {
+      block.moveDown();
+    }
+  }
+}
+
 void Game::clearField() {
   for (int i = 0; i < FIELD_BLOCK_HEIGHT * BLOCK_SIZE; i++) {
     for (int j = 0; j < FIELD_BLOCK_WIDTH * BLOCK_SIZE; j++) {
@@ -143,9 +184,7 @@ void Game::clearField() {
 
 void Game::drawField() { _insertBlocks(_blocks); };
 
-void Game::drawShape() {
-  _insertBlocks(_current_shape->getBlocks());
-};
+void Game::drawShape() { _insertBlocks(_current_shape->getBlocks()); };
 
 void Game::moveDown() {
   _current_shape->moveDown();

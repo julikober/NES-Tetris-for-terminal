@@ -49,6 +49,10 @@ public:
   void drawField();
   void drawShape();
 
+  std::vector<int> getFullLines();
+  void removeBlockAt(int x, int y);
+  void moveBlocksDown(int y);
+
   bool isOnGround();
   void spawnShape();
 

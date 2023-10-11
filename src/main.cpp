@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <mutex>
 #include <numeric>
 #include <thread>
 #include <vector>
@@ -13,46 +14,31 @@
 
 using namespace std::chrono;
 struct termios t;
+std::mutex mtx;
+Game game;
 
-int main(void) {
-  struct termios old = {0};
-  tcgetattr(0, &old);
-  old.c_lflag &= ~ICANON;
-  old.c_lflag &= ~ECHO;
-  old.c_cc[VMIN] = 1;
-  old.c_cc[VTIME] = 0;
-  tcsetattr(0, TCSANOW, &old);
-
-  Game game = Game();
-  game.init();
-  std::cout << "\033[2J" << std::flush;
-
-  std::vector<int> times;
-  auto start = high_resolution_clock::now();
+void doInput() {
   while (true) {
-    game.clearField();
-    game.drawField();
-    game.drawShape();
-    game.print();
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
-    times.push_back(duration.count());
-
     char c = getchar();
-    start = high_resolution_clock::now();
     if (c == 'q') {
       break;
     } else if (c == 27) {
       getchar();
       switch (getchar()) {
         case 66:
+          mtx.lock();
           game.moveDown();
+          mtx.unlock();
           break;
         case 67:
+          mtx.lock();
           game.moveRight();
+          mtx.unlock();
           break;
         case 68:
+          mtx.lock();
           game.moveLeft();
+          mtx.unlock();
           break;
       }
     } else if (c == 'x') {
@@ -63,6 +49,54 @@ int main(void) {
 
     if (game.isOnGround()) {
       game.spawnShape();
+    }
+  }
+}
+
+int main(void) {
+  struct termios old = {0};
+  tcgetattr(0, &old);
+  old.c_lflag &= ~ICANON;
+  old.c_lflag &= ~ECHO;
+  old.c_cc[VMIN] = 1;
+  old.c_cc[VTIME] = 0;
+  tcsetattr(0, TCSANOW, &old);
+
+  game.init();
+  std::cout << "\033[2J" << std::flush;
+
+  std::vector<int> times;
+  auto start = high_resolution_clock::now();
+
+  std::thread input_thread(doInput);
+
+  while (true) {
+    game.clearField();
+    game.drawField();
+
+    mtx.lock();
+    game.drawShape();
+    mtx.unlock();
+
+    game.print();
+
+    std::vector<int> full_lines = game.getFullLines();
+    if (full_lines.size() > 0) {
+      for (int i = 0; i < FIELD_BLOCK_WIDTH / 2; i++) {
+        for (auto &line : full_lines) {
+          game.removeBlockAt(i + FIELD_BLOCK_WIDTH / 2, line);
+          game.removeBlockAt(FIELD_BLOCK_WIDTH / 2 - i - 1, line);
+        }
+
+        game.clearField();
+        game.drawField();
+        game.print();
+        std::this_thread::sleep_for(milliseconds(16));
+      }
+
+      for (auto &line : full_lines) {
+        game.moveBlocksDown(line);
+      }
     }
   }
 
