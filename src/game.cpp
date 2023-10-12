@@ -63,6 +63,10 @@ void Game::_insertBlocks(std::vector<Block> blocks) {
       level_colors = _getLevelColors();
 
   for (Block &block : blocks) {
+    if (block.getPosition()[1] < 0) {
+      continue;
+    }
+
     auto pixels = block.getPixels(level_colors);
     for (int i = 0; i < BLOCK_SIZE; i++) {
       for (int j = 0; j < BLOCK_SIZE; j++) {
@@ -113,8 +117,8 @@ void Game::print() {
   printer->print(_screen_pixels);
 }
 
-bool Game::_isColliding(std::unique_ptr<Shape> &shape) {
-  for (auto &block : shape->getBlocks()) {
+bool Game::isColliding() {
+  for (auto &block : _current_shape->getBlocks()) {
     if (block.getPosition()[0] < 0 ||
         block.getPosition()[0] >= FIELD_BLOCK_WIDTH ||
         block.getPosition()[1] >= FIELD_BLOCK_HEIGHT) {
@@ -172,6 +176,10 @@ void Game::moveBlocksDown(int y) {
   }
 }
 
+void Game::addLineClearCount(int count) { _line_clear_count += count; }
+
+int Game::getLineClearCount() { return _line_clear_count; }
+
 void Game::clearField() {
   for (int i = 0; i < FIELD_BLOCK_HEIGHT * BLOCK_SIZE; i++) {
     for (int j = 0; j < FIELD_BLOCK_WIDTH * BLOCK_SIZE; j++) {
@@ -188,14 +196,14 @@ void Game::drawShape() { _insertBlocks(_current_shape->getBlocks()); };
 
 void Game::moveDown() {
   _current_shape->moveDown();
-  if (_isColliding(_current_shape)) {
+  if (isColliding()) {
     _current_shape->moveUp();
   }
 }
 
 bool Game::isOnGround() {
   _current_shape->moveDown();
-  bool is_on_ground = _isColliding(_current_shape);
+  bool is_on_ground = isColliding();
   _current_shape->moveUp();
   return is_on_ground;
 }
@@ -217,28 +225,28 @@ void Game::spawnShape() {
 
 void Game::moveLeft() {
   _current_shape->moveLeft();
-  if (_isColliding(_current_shape)) {
+  if (isColliding()) {
     _current_shape->moveRight();
   }
 }
 
 void Game::moveRight() {
   _current_shape->moveRight();
-  if (_isColliding(_current_shape)) {
+  if (isColliding()) {
     _current_shape->moveLeft();
   }
 }
 
 void Game::rotate() {
   _current_shape->rotate();
-  if (_isColliding(_current_shape)) {
+  if (isColliding()) {
     _current_shape->rotateBack();
   }
 }
 
 void Game::rotateBack() {
   _current_shape->rotateBack();
-  if (_isColliding(_current_shape)) {
+  if (isColliding()) {
     _current_shape->rotate();
   }
 }

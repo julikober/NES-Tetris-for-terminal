@@ -7,15 +7,15 @@ struct IShapeData {
   static constexpr std::array<std::array<int, SHAPE_SIZE_MATRIX>,
                               SHAPE_SIZE_MATRIX>
       shape = {{
-          {0, 0, 1, 0, 0},
-          {0, 0, 1, 0, 0},
-          {0, 0, 1, 0, 0},
-          {0, 0, 1, 0, 0},
+          {0, 0, 0, 0, 0},
+          {0, 0, 0, 0, 0},
+          {1, 1, 1, 1, 0},
+          {0, 0, 0, 0, 0},
           {0, 0, 0, 0, 0},
       }};
   static constexpr BlockType type = type1;
   static constexpr int rotation_count = 2;
-  static constexpr int rotation_direction = counterclockwise;
+  static constexpr int rotation_direction = clockwise;
 };
 }  // namespace
 

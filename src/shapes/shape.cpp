@@ -6,8 +6,8 @@ std::vector<Block> Shape::getBlocks()
   for (auto &block : _blocks)
   {
     blocks.push_back(
-        Block(block.getType(), {block.getPosition()[0] + _position[0],
-                                block.getPosition()[1] + _position[1]}));
+        Block(block.getType(), {block.getPosition()[0] + _position[0] - SHAPE_SIZE_MATRIX / 2,
+                                block.getPosition()[1] + _position[1] - SHAPE_SIZE_MATRIX / 2}));
   }
 
   return blocks;

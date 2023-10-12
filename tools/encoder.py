@@ -3,7 +3,7 @@ from colortrans import rgb2short
 
 COLOR_BIT_LENGTH = 8
 
-im = Image.open("images/level_colors.png")
+im = Image.open("images/background.png")
 im = im.convert("RGBA")
 pix = im.load()
 
@@ -75,7 +75,7 @@ for i in output:
     bits += bin(row_count)[2:].zfill(bit_length // 2)
     bits += bin(col_count)[2:].zfill(bit_length // 2)
 
-with open("assets/level_colors.bin", "wb") as f:
+with open("assets/background.bin", "wb") as f:
   print(bin(width)[2:].zfill(16).encode())
   f.write(width.to_bytes(2, "big"))
   f.write(COLOR_BIT_LENGTH.to_bytes(1, "big"))

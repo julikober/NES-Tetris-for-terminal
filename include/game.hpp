@@ -20,6 +20,9 @@
 #define FIELD_PIXEL_OFFSET_X 96
 #define FIELD_PIXEL_OFFSET_Y 40
 
+#define SHAPE_SPAWN_POSITION_X 5
+#define SHAPE_SPAWN_POSITION_Y 0
+
 class Game
 {
 private:
@@ -31,17 +34,17 @@ private:
   std::array<std::array<int32_t, SCREEN_WIDTH>, SCREEN_HEIGHT> _background_pixels;
   std::array<std::array<int32_t, SCREEN_WIDTH>, SCREEN_HEIGHT> _screen_pixels;
 
-  std::uint8_t _level;
+  int _level;
+  int _line_clear_count = 0;
   std::vector<std::vector<std::int32_t>> _color_palette;
 
   void _loadBackground(std::string file_path);
   std::map<BlockType, std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>> _getLevelColors();
   void _insertBlocks(std::vector<Block> blocks);
-  bool _isColliding(std::unique_ptr<Shape> &shape);
   std::unique_ptr<Shape> _generateShape();
 
 public:
-  Game(std::uint8_t level = 0) : _level(level){};
+  Game(int level = 0) : _level(level) { init(); };
   void init();
   void print();
 
@@ -53,6 +56,11 @@ public:
   void removeBlockAt(int x, int y);
   void moveBlocksDown(int y);
 
+  void addLineClearCount(int count);
+  int getLineClearCount();
+
+  bool isColliding();
+
   bool isOnGround();
   void spawnShape();
 
@@ -62,6 +70,9 @@ public:
 
   void rotate();
   void rotateBack();
+
+  int getLevel() { return _level; }
+  void setLevel(int level) { _level = level; }
 };
 
 #endif /* GAME */
