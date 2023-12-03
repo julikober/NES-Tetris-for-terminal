@@ -71,8 +71,9 @@ int main(void) {
   while (is_running) {
     game.setLevel(game.getLineClearCount() / 10);
 
-    game.clearField();
+    game.drawBackground();
     game.drawField();
+    game.drawLineCount();
 
     mtx.lock();
     game.drawShape();
@@ -129,6 +130,10 @@ int main(void) {
   old.c_cc[VMIN] = 1;
   old.c_cc[VTIME] = 0;
   tcsetattr(0, TCSANOW, &old);
+
+  std::cout << "\033[0;0H" << std::flush;
+  std::cout << "\033[0m" << std::flush;
+  std::cout << "\033[2J" << std::flush;
 
   return 0;
 }

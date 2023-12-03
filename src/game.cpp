@@ -16,7 +16,7 @@ std::map<BlockType, std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>>
 Game::_getLevelColors() {
   std::map<BlockType, std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>>
       level_colors;
-  int current_level = 0;
+  uint8_t current_level = 0;
   for (int i = 0; i < _color_palette.size(); i += BLOCK_SIZE) {
     for (int j = 0; j < _color_palette[i].size(); j += BLOCK_SIZE * 3) {
       if (current_level == _level) {
@@ -28,33 +28,40 @@ Game::_getLevelColors() {
             }
           }
         }
-        break;
+        goto finish;
       }
       current_level++;
     }
-    if (current_level == _level) {
-      break;
-    }
   }
+finish:
   return level_colors;
 }
 
-void Game::_loadBackground(std::string file_path) {
-  std::vector<std::vector<std::int32_t>> background_data =
-      decoder::decode(file_path);
-
-  for (int i = 0; i < background_data.size(); i++) {
-    for (int j = 0; j < background_data[i].size(); j++) {
-      _background_pixels[i][j] = background_data[i][j];
+std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE> Game::_getLetter(
+    uint8_t letter) {
+  std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE> letter_pixels;
+  uint8_t current_letter = 0;
+  for (int i = 0; i < _letters.size(); i += BLOCK_SIZE) {
+    for (int j = 0; j < _letters[i].size(); j += BLOCK_SIZE) {
+      if (current_letter == letter) {
+        for (int i2 = 0; i2 < BLOCK_SIZE; i2++) {
+          for (int j2 = 0; j2 < BLOCK_SIZE; j2++) {
+            letter_pixels[i2][j2] = _letters[i + i2][j + j2];
+          }
+        }
+        goto finish;
+      }
+      current_letter++;
     }
   }
-
-  _screen_pixels = _background_pixels;
+finish:
+  return letter_pixels;
 }
 
 void Game::init() {
-  _loadBackground(_background_file_path);
+  _background = decoder::decode(_background_file_path);
   _color_palette = decoder::decode(_level_colors_file_path);
+  _letters = decoder::decode(_letters_file_path);
   spawnShape();
 }
 
@@ -184,8 +191,16 @@ void Game::clearField() {
   for (int i = 0; i < FIELD_BLOCK_HEIGHT * BLOCK_SIZE; i++) {
     for (int j = 0; j < FIELD_BLOCK_WIDTH * BLOCK_SIZE; j++) {
       _screen_pixels[i + FIELD_PIXEL_OFFSET_Y][j + FIELD_PIXEL_OFFSET_X] =
-          _background_pixels[i + FIELD_PIXEL_OFFSET_Y]
+          _background[i + FIELD_PIXEL_OFFSET_Y]
                             [j + FIELD_PIXEL_OFFSET_X];
+    }
+  }
+}
+
+void Game::drawBackground() {
+  for (int i = 0; i < _background.size(); i++) {
+    for (int j = 0; j < _background[i].size(); j++) {
+      _screen_pixels[i][j] = _background[i][j];
     }
   }
 }
@@ -193,6 +208,28 @@ void Game::clearField() {
 void Game::drawField() { _insertBlocks(_blocks); };
 
 void Game::drawShape() { _insertBlocks(_current_shape->getBlocks()); };
+
+void Game::drawLineCount() {
+  const std::array<uint8_t, 3> line_count_digits = {
+      _line_clear_count / 100,
+      _line_clear_count % 100 / 10,
+      _line_clear_count % 10,
+  };
+
+  for (int digit = 0; digit < line_count_digits.size(); digit++) {
+    std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE> pixels =
+        _getLetter(line_count_digits[digit]);
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+      for (int j = 0; j < BLOCK_SIZE; j++) {
+        if (pixels[i][j] == -1) {
+          continue;
+        }
+        _screen_pixels[i + _line_clear_count_position[1]]
+                      [j + _line_clear_count_position[0] + digit * BLOCK_SIZE] = pixels[i][j];
+      }
+    }
+  }
+}
 
 void Game::moveDown() {
   _current_shape->moveDown();

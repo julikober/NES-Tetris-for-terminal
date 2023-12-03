@@ -28,18 +28,25 @@ class Game
 private:
   const std::string _background_file_path = "assets/background.bin";
   const std::string _level_colors_file_path = "assets/level_colors.bin";
+  const std::string _letters_file_path = "assets/letters.bin";
+
+  const std::array<uint8_t, 2> _line_clear_count_position = { 152, 16 };
+
   std::vector<Block> _blocks;
   std::unique_ptr<Shape> _current_shape;
   std::unique_ptr<Shape> _next_shape;
-  std::array<std::array<int32_t, SCREEN_WIDTH>, SCREEN_HEIGHT> _background_pixels;
+
   std::array<std::array<int32_t, SCREEN_WIDTH>, SCREEN_HEIGHT> _screen_pixels;
 
   int _level;
-  int _line_clear_count = 0;
+  uint16_t _line_clear_count = 0;
+  std::vector<std::vector<int32_t>> _background;
   std::vector<std::vector<std::int32_t>> _color_palette;
+  std::vector<std::vector<std::int32_t>> _letters;
 
   void _loadBackground(std::string file_path);
   std::map<BlockType, std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE>> _getLevelColors();
+  std::array<std::array<int32_t, BLOCK_SIZE>, BLOCK_SIZE> _getLetter(uint8_t letter);
   void _insertBlocks(std::vector<Block> blocks);
   std::unique_ptr<Shape> _generateShape();
 
@@ -51,8 +58,11 @@ public:
   void clearField();
   void drawField();
   void drawShape();
+  void drawLineCount();
+  void drawBackground();
 
   std::vector<int> getFullLines();
+
   void removeBlockAt(int x, int y);
   void moveBlocksDown(int y);
 
@@ -60,8 +70,8 @@ public:
   int getLineClearCount();
 
   bool isColliding();
-
   bool isOnGround();
+
   void spawnShape();
 
   void moveDown();
@@ -71,8 +81,8 @@ public:
   void rotate();
   void rotateBack();
 
-  int getLevel() { return _level; }
-  void setLevel(int level) { _level = level; }
+  inline int getLevel() { return _level; }
+  inline void setLevel(int level) { _level = level; }
 };
 
 #endif /* GAME */
